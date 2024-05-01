@@ -1,0 +1,59 @@
+version: "3"
+
+services:
+  express:
+    build: ./backend/dockerfile  # Dockerfileの親フォルダパス
+    container_name: express-container  # コンテナ名
+    hostname: express-server  # ホスト名
+    tty: true
+    environment:
+      - NODE_ENV=DEVELOPMENT
+      - PORT=3001  # コンテナ内でのポート番号
+    volumes:
+      - ./backend/app:/usr/src/app
+      - express-data:/usr/src/app/node_modules # volumeのエントリポイント => 高速化
+    ports:
+      - 3001:3001 # 公開ポート番号:environmentで指定したポート番号
+    working_dir: /usr/src/app
+    command: sh -c "yarn install && yarn global add nodemon && nodemon app.js"
+
+  react:
+    build: ./frontend/dockerfile  # Dockerfileの親フォルダパス
+    container_name: react-container  # コンテナ名
+    hostname: react-server  # ホスト名
+    tty: true
+    environment:
+      - NODE_ENV=DEVELOPMENT
+      - PORT=3000  # コンテナ内でのポート番号
+    volumes:
+      - ./frontend/app:/usr/src/app
+      - react-data:/usr/src/app/node_modules  # volumeのエントリポイント => 高速化
+    ports:
+      - 3000:3000 # 公開ポート番号:environmentで指定したポート番号
+    working_dir: /usr/src/app
+    command: sh -c "yarn install && yarn start"
+
+  mysql:
+    build: ./database/mysql/dockerfile  # Dockerfileの親フォルダパス
+    container_name: mysql-container  # コンテナ名
+    hostname: mysql-server  # ホスト名
+    platform: linux/x86_64
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
+    volumes:
+      - mysql-data:/var/lib/mysql  # volumeのエントリポイント
+      - ./database/mysql/my.cnf:/etc/mysql/conf.d/my.cnf  # cnfファイル
+      - ./database/mysql/sql/create_db.sql:/docker-entrypoint-initdb.d/create_db.sql # 起動時に実行するsqlファイル
+    environment:
+      MYSQL_ROOT_PASSWORD: password  # rootユーザーのパスワード
+      TZ: Japan
+    ports:
+      - 3306:3306  # 公開ポート番号:3306(デフォルト値）
+    restart: always
+
+volumes:
+  mysql-data:
+    name: db-data
+  express-data:
+    name: express-data
+  react-data:
+    name: react-data
