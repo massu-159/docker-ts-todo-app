@@ -1,4 +1,4 @@
-FROM mysql:latest
+FROM mysql:8.0-debian
 
 RUN apt-get update -y && \
     apt-get install -y locales && \
