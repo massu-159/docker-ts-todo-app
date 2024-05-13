@@ -1,3 +1,3 @@
-FROM node:16.13.2-alpine3.15
+FROM node:20.12.2-alpine3.19
 
 WORKDIR /usr/src/app
